@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prancheta do Zappa | Análise Tática & Scout de Futebol</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        grafite: {
+                            950: '#0b0f17',
+                            900: '#0f141c',
+                            800: '#1a2230',
+                            700: '#253043',
+                            600: '#334155'
+                        },
+                        radar: {
+                            DEFAULT: '#10b981',
+                            dark: '#059669',
+                            light: '#34d399'
+                        },
+                        tecno: {
+                            DEFAULT: '#facc15',
+                            dark: '#eab308'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f141c;
+            color: #e2e8f0;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f17;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #253043;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10b981;
+        }
+        .tactical-grid {
+            background-image: 
+                linear-gradient(to right, rgba(16, 185, 129, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="bg-grafite-900 text-slate-100 min-h-screen flex flex-col selection:bg-radar selection:text-grafite-950">
+
+    <!-- HEADER / NAVBAR -->
+    <header class="sticky top-0 z-50 bg-grafite-950/90 backdrop-blur-md border-b border-grafite-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Logo & Brand -->
+            <a href="#" class="flex items-center space-x-3 group">
+                <div class="w-12 h-12 rounded-full bg-grafite-800 border-2 border-radar flex items-center justify-center relative overflow-hidden shadow-lg shadow-radar/20 group-hover:border-tecno transition-colors">
+                    <div class="absolute inset-0 tactical-grid opacity-50"></div>
+                    <i class="fa-solid fa-chalkboard text-radar text-lg group-hover:text-tecno transition-colors z-10"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-wider text-white uppercase block leading-none">Prancheta <span class="text-tecno">do Zappa</span></span>
+                    <span class="text-xs font-mono text-radar tracking-widest block mt-1">// TACTICAL & SCOUT</span>
+                </div>
+            </a>
+
+            <!-- Navegação Desktop -->
+            <nav class="hidden md:flex items-center space-x-8 font-medium text-sm">
+                <a href="#inicio" class="text-white hover:text-radar transition-colors flex items-center gap-1.5"><i class="fa-solid fa-house text-xs"></i> Início</a>
+                <a href="#analises" class="text-slate-300 hover:text-radar transition-colors flex items-center gap-1.5"><i class="fa-solid fa-chess-board text-xs"></i> Análises Táticas</a>
+                <a href="#scout" class="text-slate-300 hover:text-radar transition-colors flex items-center gap-1.5"><i class="fa-solid fa-magnifying-glass-chart text-xs"></i> Scout & Dados</a>
+                <a href="#sobre" class="text-slate-300 hover:text-radar transition-colors flex items-center gap-1.5"><i class="fa-solid fa-user-tie text-xs"></i> Sobre</a>
+                <a href="#contato" class="text-slate-300 hover:text-radar transition-colors flex items-center gap-1.5"><i class="fa-solid fa-envelope text-xs"></i> Contato</a>
+            </nav>
+
+            <!-- Barra de Busca & Mobile Toggle -->
+            <div class="flex items-center space-x-4">
+                <div class="relative hidden lg:block w-64">
+                    <input type="text" id="searchInput" placeholder="Buscar tática, time, atleta..." class="w-full bg-grafite-800 border border-grafite-700 rounded-lg pl-9 pr-4 py-2 text-xs text-slate-200 placeholder-slate-400 focus:outline-none focus:border-radar transition-all">
+                    <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                </div>
+                <button id="mobileMenuBtn" class="md:hidden text-slate-300 hover:text-white focus:outline-none p-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menu Mobile -->
+        <div id="mobileMenu" class="hidden md:hidden bg-grafite-950 border-b border-grafite-800 px-4 pt-2 pb-6 space-y-3 font-medium text-sm">
+            <div class="relative mb-3">
+                <input type="text" placeholder="Buscar tática, time..." class="w-full bg-grafite-800 border border-grafite-700 rounded-lg pl-9 pr-4 py-2 text-xs text-slate-200 placeholder-slate-400 focus:outline-none focus:border-radar">
+                <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            </div>
+            <a href="#inicio" class="block py-2 text-white hover:text-radar"><i class="fa-solid fa-house mr-2 text-xs text-radar"></i> Início</a>
+            <a href="#analises" class="block py-2 text-slate-300 hover:text-radar"><i class="fa-solid fa-chess-board mr-2 text-xs text-radar"></i> Análises Táticas</a>
+            <a href="#scout" class="block py-2 text-slate-300 hover:text-radar"><i class="fa-solid fa-magnifying-glass-chart mr-2 text-xs text-radar"></i> Scout & Dados</a>
+            <a href="#sobre" class="block py-2 text-slate-300 hover:text-radar"><i class="fa-solid fa-user-tie mr-2 text-xs text-radar"></i> Sobre</a>
+            <a href="#contato" class="block py-2 text-slate-300 hover:text-radar"><i class="fa-solid fa-envelope mr-2 text-xs text-radar"></i> Contato</a>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section id="inicio" class="relative overflow-hidden pt-12 pb-20 border-b border-grafite-800 tactical-grid">
+        <div class="absolute inset-0 bg-gradient-to-b from-grafite-950/80 via-grafite-900/90 to-grafite-900 pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <!-- Conteúdo Hero -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-radar/10 border border-radar/30 text-radar text-xs font-mono font-semibold tracking-wider">
+                        <span class="w-2 h-2 rounded-full bg-radar animate-pulse"></span>
+                        DESTAQUE TÁTICO DA SEMANA
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                        Análise Tática: Padrões de Construção Ofensiva e <span class="text-tecno">Pressão Pós-Perda</span>
+                    </h1>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        Desvendando as dinâmicas de saída 3+2, a ocupação de espaços no terço final e como a transição defensiva imediata neutraliza contra-ataques rápidos no futebol moderno.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-slate-400 pt-2">
+                        <span class="flex items-center gap-1.5"><i class="fa-regular fa-calendar text-radar"></i> 11 de Nov, 2026</span>
+                        <span class="flex items-center gap-1.5"><i class="fa-regular fa-clock text-radar"></i> 8 min de leitura</span>
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-tag text-tecno"></i> Tática & Posicionamento</span>
+                    </div>
+                    <div class="pt-4 flex flex-wrap gap-4">
+                        <button onclick="openModal('destaque')" class="px-6 py-3 bg-radar hover:bg-radar-dark text-grafite-950 font-bold rounded-lg text-sm shadow-lg shadow-radar/20 transition-all flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-book-open"></i> Ler Análise Completa
+                        </button>
+                        <a href="#analises" class="px-6 py-3 bg-grafite-800 hover:bg-grafite-700 text-slate-200 font-medium rounded-lg text-sm border border-grafite-700 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-grid-2"></i> Ver Todos os Posts
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Mini Prancheta Visual Interativa no Hero -->
+                <div class="lg:col-span-5">
+                    <div class="bg-grafite-950 rounded-2xl p-5 border border-grafite-700 shadow-2xl relative group">
+                        <div class="flex items-center justify-between pb-4 mb-4 border-b border-grafite-800">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+                                <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
+                                <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
+                                <span class="text-xs font-mono text-slate-400 ml-2">// PRANCHETA_V2.0.SIM</span>
+                            </div>
+                            <span class="text-xs font-mono px-2 py-0.5 rounded bg-tecno/10 text-tecno border border-tecno/30">AO VIVO</span>
+                        </div>
+                        
+                        <!-- Mini Campo de Futebol Simulado -->
+                        <div id="tacticalBoard" class="w-full h-64 bg-emerald-950 rounded-xl relative border border-emerald-800 overflow-hidden flex items-center justify-center cursor-pointer select-none">
+                            <!-- Marcações do Campo SVG -->
+                            <svg class="absolute inset-0 w-full h-full opacity-40 pointer-events-none" viewBox="0 0 400 250" fill="none" stroke="#10b981" stroke-width="1.5">
+                                <rect x="10" y="10" width="380" height="230" rx="4"></rect>
+                                <line x1="200" y1="10" x2="200" y2="240"></line>
+                                <circle cx="200" cy="125" r="40"></circle>
+                                <circle cx="200" cy="125" r="2" fill="#10b981"></circle>
+                                <!-- Área esquerda -->
+                                <rect x="10" y="65" width="60" height="120"></rect>
+                                <rect x="10" y="95" width="20" height="60"></rect>
+                                <!-- Área direita -->
+                                <rect x="330" y="65" width="60" height="120"></rect>
+                                <rect x="370" y="95" width="20" height="60"></rect>
+                            </svg>
+
+                            <!-- Elementos Táticos Animados / Peças -->
+                            <div class="absolute inset-0 p-4 flex flex-col justify-between pointer-events-none">
+                                <div class="flex justify-between items-center text-xs font-mono text-emerald-400 bg-emerald-900/60 px-3 py-1 rounded backdrop-blur">
+                                    <span>Sistema: 3-2-4-1 (Build-up)</span>
+                                    <span class="text-tecno animate-pulse">● Pressionando</span>
+                                }</div>
+                            </div>
+
+                            <!-- Jogadores na prancheta -->
+                            <div class="absolute top-[48%] left-[15%] w-7 h-7 rounded-full bg-blue-600 border-2 border-white flex items-center justify-center text-[10px] font-bold shadow-md transition-all duration-300" style="transform: translate(-50%, -50%);">GK</div>
+                            <div class="absolute top-[25%] left-[30%] w-7 h-7 rounded-full bg-radar text-grafite-950 font-extrabold border-2 border-white flex items-center justify-center text-[10px] shadow-md transition-all duration-300" style="transform: translate(-50%, -50%);">ZAG</div>
+                            <div class="absolute top-[50%] left-[28%] w-7 h-7 rounded-full bg-radar text-grafite-950 font-extrabold border-2 border-white flex items-center justify-center text-[10px] shadow-md transition-all duration-300" style="transform: translate(-50%, -50%);">ZAG</div>
+                            <div class="absolute top-[75%] left-[30%] w-7 h-7 rounded-full bg-radar text-grafite-950 font-extrabold border-2 border-white flex items-center justify-center text-[10px] shadow-md transition-all duration-300" style="transform: translate(-50%, -50%);">ZAG</div>
+                            
+                            <div class="absolute top-[38%] left-[45%] w-7 h-7 rounded-full bg-tecno text-grafite-950 font-extrabold border-2 border-white flex items-center justify-center text-[10px] shadow-md transition-all duration-300" style="transform: translate(-50%, -50%);">VOL</div>
+                            <div class="absolute top-[62%] left-[45%] w-7 h-7 rounded-full bg-tecno text-grafite-950 font-extrabold border-2 border-white flex items-center justify-center text-[10px] shadow-md transition-all duration-300" style="transform: translate(-50%, -50%);">VOL</div>
+
+                            <div class="absolute top-[15%] left-[65%] w-7 h-7 rounded-full bg-blue-500 text-white font-bold border-2 border-white flex items-center justify-center text-[10px] shadow-md transition-all duration-300" style="transform: translate(-50%, -50%);">ALA</div>
+                            <div class="absolute top-[40%] left-[68%] w-7 h-7 rounded-full bg-blue-500 text-white font-bold border-2 border-white flex items-center justify-center text-[10px] shadow-md transition-all duration-300" style="transform: translate(-50%, -50%);">MEI</div>
+                            <div class="absolute top-[60%] left-[68%] w-7 h-7 rounded-full bg-blue-500 text-white font-bold border-2 border-white flex items-center justify-center text-[10px] shadow-md transition-all duration-300" style="transform: translate(-50%, -50%);">MEI</div>
+                            <div class="absolute top-[85%] left-[65%] w-7 h-7 rounded-full bg-blue-500 text-white font-bold border-2 border-white flex items-center justify-center text-[10px] shadow-md transition-all duration-300" style="transform: translate(-50%, -50%);">ALA</div>
+
+                            <div class="absolute top-[50%] left-[85%] w-7 h-7 rounded-full bg-red-600 text-white font-bold border-2 border-white flex items-center justify-center text-[10px] shadow-md transition-all duration-300" style="transform: translate(-50%, -50%);">ATA</div>
+
+                            <!-- Vetores de movimento -->
+                            <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 400 250">
+                                <path d="M120 125 Q 180 80 260 60" fill="none" stroke="#facc15" stroke-dasharray="4" stroke-width="2" marker-end="url(#arrow)" />
+                                <path d="M120 125 Q 180 170 260 190" fill="none" stroke="#facc15" stroke-dasharray="4" stroke-width="2" />
+                            </svg>
+                        </div>
+
+                        <div class="mt-4 flex items-center justify-between text-xs font-mono text-slate-400">
+                            <span>Clique para alternar variação tática</span>
+                            <button onclick="toggleTacticalVariation()" class="text-radar hover:text-tecno font-bold flex items-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-rotate"></i> Alternar Fase
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEÇÃO DE FILTROS E ARTIGOS RECENTES -->
+    <section id="analises" class="py-16 bg-grafite-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 pb-6 border-b border-grafite-800 gap-4">
+                <div>
+                    <span class="text-radar font-mono text-xs uppercase tracking-widest block mb-1">// ARQUIVO DE INTELIGÊNCIA</span>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Análises Recentes & Publicações</h2>
+                </div>
+                <!-- Filtros de Categorias -->
+                <div class="flex flex-wrap gap-2 text-xs font-medium">
+                    <button onclick="filterPosts('all')" class="category-btn px-4 py-2 rounded-lg bg-radar text-grafite-950 font-bold transition-all shadow-md">Todos</button>
+                    <button onclick="filterPosts('tatica')" class="category-btn px-4 py-2 rounded-lg bg-grafite-800 hover:bg-grafite-700 text-slate-300 transition-all border border-grafite-700">Análise Tática</button>
+                    <button onclick="filterPosts('scout')" class="category-btn px-4 py-2 rounded-lg bg-grafite-800 hover:bg-grafite-700 text-slate-300 transition-all border border-grafite-700">Scout & Dados</button>
+                    <button onclick="filterPosts('selecao')" class="category-btn px-4 py-2 rounded-lg bg-grafite-800 hover:bg-grafite-700 text-slate-300 transition-all border border-grafite-700">Seleção Brasileira</button>
+                    <button onclick="filterPosts('palmeiras')" class="category-btn px-4 py-2 rounded-lg bg-grafite-800 hover:bg-grafite-700 text-slate-300 transition-all border border-grafite-700">Palmeiras / EPL</button>
+                </div>
+            </div>
+
+            <!-- Grade de Artigos -->
+            <div id="postsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- Card 1 -->
+                <article class="post-card bg-grafite-950 rounded-xl border border-grafite-800 overflow-hidden hover:border-radar/50 transition-all duration-300 flex flex-col group" data-category="tatica">
+                    <div class="h-48 bg-grafite-800 relative overflow-hidden flex items-center justify-center">
+                        <div class="absolute inset-0 tactical-grid opacity-30"></div>
+                        <div class="absolute top-3 left-3 bg-radar text-grafite-950 text-xs font-mono font-bold px-2.5 py-1 rounded">Análise Tática</div>
+                        <i class="fa-solid fa-chess text-4xl text-radar/60 group-hover:scale-110 transition-transform duration-300"></i>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 text-xs font-mono text-slate-400 mb-2">
+                                <span><i class="fa-regular fa-calendar text-radar mr-1"></i> 08 Nov, 2026</span>
+                                <span>•</span>
+                                <span>6 min leitura</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-radar transition-colors mb-2">
+                                A Evolução do Lateral Invertido: Como o Manchester City e Abel Ferreira redefiniram o corredor central
+                            </h3>
+                            <p class="text-slate-400 text-xs sm:text-sm line-clamp-3 leading-relaxed mb-4">
+                                Estudo aprofundado sobre como laterais que fecham por dentro criam superioridade numérica no meio-campo e geram novas opções de passe progressivo.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-grafite-800 flex items-center justify-between">
+                            <span class="text-xs font-mono text-tecno">Por Zappa</span>
+                            <button onclick="openModal('lateral')" class="text-xs font-bold text-radar hover:text-white flex items-center gap-1 cursor-pointer">
+                                Ler artigo <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Card 2 -->
+                <article class="post-card bg-grafite-950 rounded-xl border border-grafite-800 overflow-hidden hover:border-radar/50 transition-all duration-300 flex flex-col group" data-category="scout">
+                    <div class="h-48 bg-grafite-800 relative overflow-hidden flex items-center justify-center">
+                        <div class="absolute inset-0 tactical-grid opacity-30"></div>
+                        <div class="absolute top-3 left-3 bg-tecno text-grafite-950 text-xs font-mono font-bold px-2.5 py-1 rounded">Scout & Dados</div>
+                        <i class="fa-solid fa-chart-line text-4xl text-tecno/60 group-hover:scale-110 transition-transform duration-300"></i>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 text-xs font-mono text-slate-400 mb-2">
+                                <span><i class="fa-regular fa-calendar text-radar mr-1"></i> 05 Nov, 2026</span>
+                                <span>•</span>
+                                <span>7 min leitura</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-radar transition-colors mb-2">
+                                Métricas Avançadas: O que o xG (Gols Esperados) e o PPDA revelam sobre a intensidade defensiva
+                            </h3>
+                            <p class="text-slate-400 text-xs sm:text-sm line-clamp-3 leading-relaxed mb-4">
+                                Uma introdução prática aos números que realmente importam na análise de desempenho moderna e como auditar equipes pelo volume de pressão.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-grafite-800 flex items-center justify-between">
+                            <span class="text-xs font-mono text-tecno">Por Zappa</span>
+                            <button onclick="openModal('metricas')" class="text-xs font-bold text-radar hover:text-white flex items-center gap-1 cursor-pointer">
+                                Ler artigo <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Card 3 -->
+                <article class="post-card bg-grafite-950 rounded-xl border border-grafite-800 overflow-hidden hover:border-radar/50 transition-all duration-300 flex flex-col group" data-category="palmeiras">
+                    <div class="h-48 bg-grafite-800 relative overflow-hidden flex items-center justify-center">
+                        <div class="absolute inset-0 tactical-grid opacity-30"></div>
+                        <div class="absolute top-3 left-3 bg-emerald-600 text-white text-xs font-mono font-bold px-2.5 py-1 rounded">Palmeiras / EPL</div>
+                        <i class="fa-solid fa-shield-halved text-4xl text-emerald-400/60 group-hover:scale-110 transition-transform duration-300"></i>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 text-xs font-mono text-slate-400 mb-2">
+                               <span><i class="fa-regular fa-calendar text-radar mr-1"></i> 01 Nov, 2026</span>
+                                <span>•</span>
+                                <span>5 min leitura</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-radar transition-colors mb-2">
+                                Palmeiras de Abel Ferreira: A Compactação Defensiva e a Verticalidade em Três Toques
+                            </h3>
+                            <p class="text-slate-400 text-xs sm:text-sm line-clamp-3 leading-relaxed mb-4">
+                                Como o bloco baixo e médio alviverde se comporta sem a bola e explora a profundidade com extrema velocidade na transição ofensiva.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-grafite-800 flex items-center justify-between">
+                            <span class="text-xs font-mono text-tecno">Por Zappa</span>
+                            <button onclick="openModal('palmeiras')" class="text-xs font-bold text-radar hover:text-white flex items-center gap-1 cursor-pointer">
+                                Ler artigo <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Card 4 -->
+                <article class="post-card bg-grafite-950 rounded-xl border border-grafite-800 overflow-hidden hover:border-radar/50 transition-all duration-300 flex flex-col group" data-category="selecao">
+                    <div class="h-48 bg-grafite-800 relative overflow-hidden flex items-center justify-center">
+                        <div class="absolute inset-0 tactical-grid opacity-30"></div>
+                        <div class="absolute top-3 left-3 bg-yellow-500 text-grafite-950 text-xs font-mono font-bold px-2.5 py-1 rounded">Seleção Brasileira</div>
+                        <i class="fa-solid fa-futbol text-4xl text-yellow-500/60 group-hover:scale-110 transition-transform duration-300"></i>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 text-xs font-mono text-slate-400 mb-2">
+                                <span><i class="fa-regular fa-calendar text-radar mr-1"></i> 28 Out, 2026</span>
+                                <span>•</span>
+                                <span>9 min leitura</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-radar transition-colors mb-2">
+                                O Meio-Campo da Seleção: Encontrando o Equilíbrio entre Criatividade e Sustentação Defensiva
+                            </h3>
+                            <p class="text-slate-400 text-xs sm:text-sm line-clamp-3 leading-relaxed mb-4">
+                                Análise das opções de volantes e meias internos para garantir que o time não sofra contra transições rápidas adversárias.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-grafite-800 flex items-center justify-between">
+                            <span class="text-xs font-mono text-tecno">Por Zappa</span>
+                            <button onclick="openModal('selecao')" class="text-xs font-bold text-radar hover:text-white flex items-center gap-1 cursor-pointer">
+                                Ler artigo <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Card 5 -->
+                <article class="post-card bg-grafite-950 rounded-xl border border-grafite-800 overflow-hidden hover:border-radar/50 transition-all duration-300 flex flex-col group" data-category="tatica">
+                    <div class="h-48 bg-grafite-800 relative overflow-hidden flex items-center justify-center">
+                        <div class="absolute inset-0 tactical-grid opacity-30"></div>
+                        <div class="absolute top-3 left-3 bg-radar text-grafite-950 text-xs font-mono font-bold px-2.5 py-1 rounded">Análise Tática</div>
+                        <i class="fa-solid fa-crosshairs text-4xl text-radar/60 group-hover:scale-110 transition-transform duration-300"></i>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 text-xs font-mono text-slate-400 mb-2">
+                                <span><i class="fa-regular fa-calendar text-radar mr-1"></i> 24 Out, 2026</span>
+                                <span>•</span>
+                                <span>5 min leitura</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-radar transition-colors mb-2">
+                                Gegenpressing vs. Posse Organizada: Anatomia de um Confronto de Ideologias na Europa
+                            </h3>
+                            <p class="text-slate-400 text-xs sm:text-sm line-clamp-3 leading-relaxed mb-4">
+                                Como Klopp e Guardiola moldaram a década tática com modelos opostos e complementares de ocupação territorial.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-grafite-800 flex items-center justify-between">
+                            <span class="text-xs font-mono text-tecno">Por Zappa</span>
+                            <button onclick="openModal('gegenpressing')" class="text-xs font-bold text-radar hover:text-white flex items-center gap-1 cursor-pointer">
+                                Ler artigo <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Card 6 -->
+                <article class="post-card bg-grafite-950 rounded-xl border border-grafite-800 overflow-hidden hover:border-radar/50 transition-all duration-300 flex flex-col group" data-category="scout">
+                    <div class="h-48 bg-grafite-800 relative overflow-hidden flex items-center justify-center">
+                        <div class="absolute inset-0 tactical-grid opacity-30"></div>
+                        <div class="absolute top-3 left-3 bg-tecno text-grafite-950 text-xs font-mono font-bold px-2.5 py-1 rounded">Scout & Dados</div>
+                        <i class="fa-solid fa-radar text-4xl text-tecno/60 group-hover:scale-110 transition-transform duration-300"></i>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 text-xs font-mono text-slate-400 mb-2">
+                                <span><i class="fa-regular fa-calendar text-radar mr-1"></i> 20 Out, 2026</span>
+                                <span>•</span>
+                                <span>8 min leitura</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-radar transition-colors mb-2">
+                                Radar de Desempenho: Como Filtrar Atletas Sub-23 no Mercado Sul-Americano
+                            </h3>
+                            <p class="text-slate-400 text-xs sm:text-sm line-clamp-3 leading-relaxed mb-4">
+                                Ferramentas de filtragem de dados e percentis de duelos defensivos e passes progressivos para prospecção de joias.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-grafite-800 flex items-center justify-between">
+                            <span class="text-xs font-mono text-tecno">Por Zappa</span>
+                            <button onclick="openModal('radar')" class="text-xs font-bold text-radar hover:text-white flex items-center gap-1 cursor-pointer">
+                                Ler artigo <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SEÇÃO INTERATIVA: PAINEL DE DADOS TÁTICOS -->
+    <section id="scout" class="py-16 bg-grafite-950 border-t border-b border-grafite-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto text-center mb-12">
+                <span class="text-radar font-mono text-xs uppercase tracking-widest block mb-2">// LABORATÓRIO DE PERFORMANCE</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Simulador de Indicadores Táticos</h2>
+                <p class="text-slate-400 text-sm mt-2">
+                    Explore parâmetros estatísticos em tempo real inspirados nos relatórios analíticos da Prancheta do Zappa.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                <!-- Controle do Simulador -->
+                <div class="bg-grafite-900 p-6 rounded-xl border border-grafite-800 space-y-6">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-radar"></i> Parâmetros da Equipe
+                    </h3>
+                    
+                    <div class="space-y-4 text-xs font-mono">
+                        <div>
+                            <div class="flex justify-between mb-1 text-slate-300">
+                                <span>Intensidade de Pressão (PPDA)</span>
+                                <span id="ppdaVal" class="text-tecno font-bold">8.5 (Alta)</span>
+                            </div>
+                            <input type="range" min="5" max="20" step="0.5" value="8.5" oninput="updateMetrics()" id="ppdaRange" class="w-full accent-radar bg-grafite-800 cursor-pointer">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1 text-slate-300">
+                                <span>Posse de Bola Média (%)</span>
+                                <span id="posseVal" class="text-radar font-bold">62%</span>
+                            </div>
+                            <input type="range" min="30" max="80" step="1" value="62" oninput="updateMetrics()" id="posseRange" class="w-full accent-radar bg-grafite-800 cursor-pointer">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1 text-slate-300">
+                                <span>Passes Progressivos / Jogo</span>
+                                <span id="passesVal" class="text-tecno font-bold">74</span>
+                            </div>
+                            <input type="range" min="30" max="120" step="1" value="74" oninput="updateMetrics()" id="passesRange" class="w-full accent-radar bg-grafite-800 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-lg bg-grafite-950 border border-grafite-800 text-xs text-slate-400 leading-relaxed">
+                        <span class="text-radar font-bold block mb-1"><i class="fa-solid fa-lightbulb"></i> Diagnóstico do Zappa:</span>
+                        <span id="diagnosticText">Equipe com perfil ultra-ofensivo, foco em recuperação imediata pós-perda e circulação em bloco alto.</span>
+                    </div>
+                </div>
+
+                <!-- Painel Visual de Gráficos Simulados -->
+                <div class="lg:col-span-2 bg-grafite-900 p-6 sm:p-8 rounded-xl border border-grafite-800 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <!-- Card indicador 1 -->
+                    <div class="bg-grafite-950 p-5 rounded-xl border border-grafite-800 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-xs font-mono text-slate-400">
+                            <span>Eficiência de Transição</span>
+                            <i class="fa-solid fa-bolt text-tecno"></i>
+                        </div>
+                        <div class="my-4">
+                            <div class="text-3xl font-extrabold text-white font-mono" id="metricTransicao">88.4%</div>
+                            <div class="w-full bg-grafite-800 h-2 rounded-full mt-3 overflow-hidden">
+                                <div id="barTransicao" class="bg-radar h-full rounded-full transition-all duration-500" style="width: 88.4%;"></div>
+                            </div>
+                        </div>
+                        <span class="text-[11px] text-slate-500">Velocidade média de progressão após roubo de bola.</span>
+                    </div>
+
+                    <!-- Card indicador 2 -->
+                    <div class="bg-grafite-950 p-5 rounded-xl border border-grafite-800 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-xs font-mono text-slate-400">
+                            <span>Ocupação do Terço Final</span>
+                            <i class="fa-solid fa-chess-queen text-radar"></i>
+                        </div>
+                        <div class="my-4">
+                            <div class="text-3xl font-extrabold text-white font-mono" id="metricTerco">76.2%</div>
+                            <div class="w-full bg-grafite-800 h-2 rounded-full mt-3 overflow-hidden">
+                                <div id="barTerco" class="bg-tecno h-full rounded-full transition-all duration-500" style="width: 76.2%;"></div>
+                            </div>
+                        </div>
+                        <span class="text-[11px] text-slate-500">Volume de ações bem-sucedidas na zona de finalização.</span>
+                    </div>
+
+                    <!-- Card indicador 3 -->
+                    <div class="bg-grafite-950 p-5 rounded-xl border border-grafite-800 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-xs font-mono text-slate-400">
+                            <span>Ações Defensivas Bem-Sucedidas</span>
+                            <i class="fa-solid fa-shield text-emerald-400"></i>
+                        </div>
+                        <div class="my-4">
+                            <div class="text-3xl font-extrabold text-white font-mono" id="metricDefesa">91.0%</div>
+                            <div class="w-full bg-grafite-800 h-2 rounded-full mt-3 overflow-hidden">
+                                <div id="barDefesa" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 91%;"></div>
+                            </div>
+                        </div>
+                        <span class="text-[11px] text-slate-500">Taxa de sucesso em duelos terrestres e aéreos defensivos.</span>
+                    </div>
+
+                    <!-- Card indicador 4 -->
+                    <div class="bg-grafite-950 p-5 rounded-xl border border-grafite-800 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-xs font-mono text-slate-400">
+                            <span>Índice de Periculosidade xThreat</span>
+                            <i class="fa-solid fa-fire text-orange-400"></i>
+                        </div>
+                        <div class="my-4">
+                            <div class="text-3xl font-extrabold text-white font-mono" id="metricThreat">4.35</div>
+                            <div class="w-full bg-grafite-800 h-2 rounded-full mt-3 overflow-hidden">
+                                <div id="barThreat" class="bg-orange-500 h-full rounded-full transition-all duration-500" style="width: 82%;"></div>
+                            </div>
+                        </div>
+                        <span class="text-[11px] text-slate-500">Geração de valor posicional acumulado por posse.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEÇÃO SOBRE O AUTOR -->
+    <section id="sobre" class="py-20 bg-grafite-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-grafite-950 border border-grafite-800 rounded-2xl p-8 sm:p-12 relative overflow-hidden">
+                <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-radar/5 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative z-10">
+                    <div class="lg:col-span-4 flex flex-col items-center text-center">
+                        <div class="w-36 h-36 rounded-2xl bg-grafite-800 border-2 border-radar p-2 shadow-2xl relative overflow-hidden group">
+                            <div class="absolute inset-0 tactical-grid opacity-50"></div>
+                            <div class="w-full h-full bg-grafite-900 rounded-xl flex items-center justify-center relative z-10 text-radar text-4xl">
+                                <i class="fa-solid fa-user-gear"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mt-4">Zappa</h3>
+                        <span class="text-xs font-mono text-radar mt-1">Analista Tático & Scout de Futebol</span>
+                        <div class="flex items-center space-x-3 mt-4 text-slate-300">
+                            <a href="#" class="w-9 h-9 rounded-lg bg-grafite-800 hover:bg-radar hover:text-grafite-950 flex items-center justify-center transition-colors"><i class="fa-brands fa-twitter"></i></a>
+                            <a href="#" class="w-9 h-9 rounded-lg bg-grafite-800 hover:bg-radar hover:text-grafite-950 flex items-center justify-center transition-colors"><i class="fa-brands fa-linkedin-in"></i></a>
+                            <a href="#" class="w-9 h-9 rounded-lg bg-grafite-800 hover:bg-radar hover:text-grafite-950 flex items-center justify-center transition-colors"><i class="fa-brands fa-youtube"></i></a>
+                            <a href="#" class="w-9 h-9 rounded-lg bg-grafite-800 hover:bg-radar hover:text-grafite-950 flex items-center justify-center transition-colors"><i class="fa-brands fa-github"></i></a>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-8 space-y-4">
+                        <span class="text-radar font-mono text-xs uppercase tracking-widest block">// QUEM SOU EU</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Combinando paixão pelo jogo e rigor científico em dados</h2>
+                        <p class="text-slate-300 text-sm leading-relaxed">
+                            A **Prancheta do Zappa** nasceu da necessidade de ir além do debate clubista superficial. Aqui, o futebol é decifrado através de imagens táticas, métricas de desempenho avançadas (como PPDA, xG, xThreat e blocos compactos) e relatórios de scout aprofundados.
+                        </p>
+                        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                            Meu trabalho é traduzir a complexidade dos sistemas defensivos, padrões de saída de bola e comportamento físico-tático dos atletas em análises claras, acessíveis e fundamentadas para torcedores, profissionais e entusiastas do esporte.
+                        </p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 text-xs font-mono">
+                            <div class="bg-grafite-900 p-3 rounded-lg border border-grafite-800">
+                                <span class="text-radar font-bold block text-lg">150+</span>
+                                <span class="text-slate-400">Análises Publicadas</span>
+                            </div>
+                            <div class="bg-grafite-900 p-3 rounded-lg border border-grafite-800">
+                                <span class="text-tecno font-bold block text-lg">12 Ligas</span>
+                                <span class="text-slate-400">Cobertas em Scout</span>
+                            </div>
+                            <div class="bg-grafite-900 p-3 rounded-lg border border-grafite-800 col-span-2 sm:col-span-1">
+                                <span class="text-white font-bold block text-lg">100%</span>
+                                <span class="text-slate-400">Foco em Conteúdo Técnico</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEÇÃO DE CONTATO / NEWSLETTER -->
+    <section id="contato" class="py-16 bg-grafite-950 border-t border-grafite-800">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+            <span class="text-radar font-mono text-xs uppercase tracking-widest block">// RECEBA NOSSOS RELATÓRIOS</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Assine a Newsletter Tática da Prancheta</h2>
+            <p class="text-slate-400 text-sm max-w-xl mx-auto">
+                Toda semana, análises táticas exclusivas, relatórios de scout em PDF e prévias de grandes jogos direto na sua caixa de entrada. Sem spam.
+            </p>
+            <form onsubmit="handleNewsletter(event)" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto pt-2">
+                <input type="email" required placeholder="Seu melhor e-mail..." class="flex-1 bg-grafite-900 border border-grafite-700 rounded-lg px-4 py-3 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-radar">
+                <button type="submit" class="bg-radar hover:bg-radar-dark text-grafite-950 font-bold px-6 py-3 rounded-lg text-xs transition-all shadow-lg shadow-radar/20 cursor-pointer">
+                    Inscrever-se
+                </button>
+            </form>
+            <div id="newsletterMsg" class="hidden text-xs font-mono text-radar mt-2"></div>
+        </div>
+    </section>
+
+    <!-- RODAPÉ -->
+    <footer class="bg-grafite-950 border-t border-grafite-800 py-12 text-slate-400 text-xs font-mono">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-grafite-800 border border-radar flex items-center justify-center text-radar">
+                    <i class="fa-solid fa-chalkboard text-xs"></i>
+                </div>
+                <span class="text-white font-bold tracking-wider uppercase">Prancheta do Zappa</span>
+            </div>
+            <div>
+                <p>&copy; 2026 Prancheta do Zappa. Todos os direitos reservados. Futebol analisado com ciência e paixão.</p>
+            </div>
+            <div class="flex space-x-4 text-sm">
+                <a href="#" class="hover:text-radar transition-colors"><i class="fa-brands fa-twitter"></i></a>
+                <a href="#" class="hover:text-radar transition-colors"><i class="fa-brands fa-youtube"></i></a>
+                <a href="#" class="hover:text-radar transition-colors"><i class="fa-brands fa-linkedin-in"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL DE LEITURA DE ARTIGO -->
+    <div id="articleModal" class="fixed inset-0 z-50 hidden bg-grafite-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-grafite-900 border border-grafite-700 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-grafite-800 flex items-center justify-between bg-grafite-950">
+                <div class="flex items-center gap-3">
+                    <span id="modalCategoryTag" class="px-2.5 py-1 rounded bg-radar text-grafite-950 text-xs font-mono font-bold">Análise Tática</span>
+                    <span id="modalDate" class="text-xs font-mono text-slate-400">11 de Nov, 2026</span>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-grafite-800 transition-colors cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div id="modalContentBody" class="p-6 sm:p-8 overflow-y-auto space-y-6 text-slate-300 text-sm leading-relaxed">
+                <h1 id="modalTitle" class="text-2xl sm:text-3xl font-extrabold text-white leading-tight">Título da Análise</h1>
+                <div class="p-4 rounded-xl bg-grafite-950 border border-grafite-800 text-xs font-mono text-radar flex items-center gap-3">
+                    <i class="fa-solid fa-circle-info text-base"></i>
+                    <span>Relatório técnico extraído do banco de dados táticos da Prancheta do Zappa.</span>
+                </div>
+                <div id="modalTextBody" class="space-y-4">
+                    <!-- Conteúdo dinâmico preenchido via JS -->
+                </div>
+            </div>
+            <!-- Modal Footer -->
+            <div class="p-4 bg-grafite-950 border-t border-grafite-800 flex items-center justify-between text-xs font-mono">
+                <span class="text-slate-400">Autor: Zappa // Scout & Análise</span>
+                <button onclick="closeModal()" class="px-4 py-2 bg-grafite-800 hover:bg-grafite-700 text-white rounded-lg transition-colors cursor-pointer">
+                    Fechar Artigo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE INTERATIVIDADE -->
+    <script>
+        // Menu Mobile Toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Simulação de alteração tática na prancheta do Hero
+        let tacticalPhase = 0;
+        function toggleTacticalVariation() {
+            tacticalPhase = (tacticalPhase + 1) % 2;
+            const players = document.querySelectorAll('#tacticalBoard > div:not(.absolute)'); // Simplificado
+            // Podemos apenas disparar uma animação suave de mudança de posição simulada
+            const board = document.getElementById('tacticalBoard');
+            board.classList.add('opacity-70');
+            setTimeout(() => {
+                board.classList.remove('opacity-70');
+            }, 300);
+        }
+
+        // Filtros de Categorias
+        function filterPosts(category) {
+            const buttons = document.querySelectorAll('.category-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-radar', 'text-grafite-950', 'font-bold');
+                btn.classList.add('bg-grafite-800', 'text-slate-300', 'border', 'border-grafite-700');
+            });
+            event.target.classList.remove('bg-grafite-800', 'text-slate-300', 'border', 'border-grafite-700');
+            event.target.classList.add('bg-radar', 'text-grafite-950', 'font-bold');
+
+            const cards = document.querySelectorAll('.post-card');
+            cards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Atualizador do Simulador de Dados Táticos
+        function updateMetrics() {
+            const ppda = document.getElementById('ppdaRange').value;
+            const posse = document.getElementById('posseRange').value;
+            const passes = document.getElementById('passesRange').value;
+
+            document.getElementById('ppdaVal').innerText = ppda + (ppda < 9 ? ' (Alta)' : ppda < 14 ? ' (Média)' : ' (Baixa)');
+            document.getElementById('posseVal').innerText = posse + '%';
+            document.getElementById('passesVal').innerText = passes;
+
+            // Calcular valores simulados proporcionais
+            let transicao = Math.min(98, Math.max(70, (20 - ppda) * 3 + 60)).toFixed(1);
+            let terco = Math.min(95, Math.max(50, Number(posse) * 1.1)).toFixed(1);
+            let defesa = Math.min(99, Math.max(65, 100 - (ppda * 1.5))).toFixed(1);
+            let threat = Math.min(6.5, Math.max(2.0, (passes / 25) + (posse / 30))).toFixed(2);
+
+            document.getElementById('metricTransicao').innerText = transicao + '%';
+            document.getElementById('barTransicao').style.width = transicao + '%';
+
+            document.getElementById('metricTerco').innerText = terco + '%';
+            document.getElementById('barTerco').style.width = terco + '%';
+
+            document.getElementById('metricDefesa').innerText = defesa + '%';
+            document.getElementById('barDefesa').style.width = defesa + '%';
+
+            document.getElementById('metricThreat').innerText = threat;
+            document.getElementById('barThreat').style.width = (threat / 6.5 * 100) + '%';
+
+            let diag = "Equipe equilibrada com boa circulação e controle territorial.";
+            if (ppda < 9 && posse > 60) {
+                diag = "Modelo dominante: Pressão sufocante pós-perda (Gegenpress) combinada com alta posse e circulação no terço final.";
+            } else if (ppda > 14) {
+                diag = "Modelo reativo: Bloco baixo compacto, excelente taxa de duelos defensivos e transição vertical explosiva.";
+            }
+            document.getElementById('diagnosticText').innerText = diag;
+        }
+
+        // Banco de Artigos para o Modal
+        const articlesData = {
+            'destaque': {
+                tag: 'Análise Tática',
+                date: '11 de Nov, 2026',
+                title: 'Análise Tática: Padrões de Construção Ofensiva e Pressão Pós-Perda',
+                body: `
+                    <p>A construção de jogo a partir da primeira linha tornou-se o principal termômetro do futebol moderno. Quando observamos equipes de elite, a estrutura 3+2 na saída de bola não é apenas um arranjo estático, mas um mecanismo dinâmico para atrair a pressão adversária e gerar espaços nas costas dos volantes rivais.</p>
+                    <h4 class="text-white font-bold text-base mt-4">1. A Saída 3+2 e a Superioridade Numérica</h4>
+                    <p>Ao fixar três defensores na primeira linha (com um lateral fechando por dentro ou o volante recuando) e dois meio-campistas centrais logo à frente, o time cria um losango de passes que dificulta a marcação individual do adversário. Se o rival pressiona com dois atacantes, a superioridade numérica de 3 contra 2 garante a progressão limpa.</p>
+                    <h4 class="text-white font-bold text-base mt-4">2. A Importância da Pressão Pós-Perda</h4>
+                    <p>Perder a bola no terço ofensivo é o momento de maior vulnerabilidade defensiva do adversário. Os dados mostram que equipes que compactam o espaço em até 3 segundos após a perda recuperam a posse no campo rival em mais de 45% das ocasiões, gerando chances claras de finalização antes que o rival consiga organizar seu bloco defensivo.</p>
+                `
+            },
+            'lateral': {
+                tag: 'Análise Tática',
+                date: '08 de Nov, 2026',
+                title: 'A Evolução do Lateral Invertido: Como o Manchester City e Abel Ferreira redefiniram o corredor central',
+                body: `
+                    <p>O conceito de lateral invertido revolucionou a ocupação de espaços no meio-campo. Tradicionalmente encarregados de dar largura na linha de cal, hoje esses atletas atuam como construtores adicionais por dentro.</p>
+                    <p>Isso permite que os pontas abram o campo na largura máxima, enquanto os meias interiores atacam os corredores centrais (half-spaces), criando uma teia de passes quase impossível de ser marcada em zona pura.</p>
+                `
+            },
+            'metricas': {
+                tag: 'Scout & Dados',
+                date: '05 de Nov, 2026',
+                title: 'Métricas Avançadas: O que o xG e o PPDA revelam sobre a intensidade defensiva',
+                body: `
+                    <p>O uso de dados brutos perdeu espaço para métricas contextuais. O PPDA (Passes Per Defensive Action) mede quantas trocas de passes o adversário consegue realizar antes que sua equipe execute uma ação defensiva (desarme, falta ou interceptação).</p>
+                    <p>Quanto menor o PPDA, mais intensa e agressiva é a pressão alta da equipe.</p>
+                `
+            },
+            'palmeiras': {
+                tag: 'Palmeiras / EPL',
+                date: '01 de Nov, 2026',
+                title: 'Palmeiras de Abel Ferreira: A Compactação Defensiva e a Verticalidade em Três Toques',
+                body: `
+                    <p>O Palmeiras sob o comando de Abel Ferreira é um estudo de caso sobre eficiência tática. Sem a bola, o bloco compacto em 4-4-2 ou 5-4-1 fecha as linhas de passe interiores, forçando o adversário a circular a bola por zonas laterais de baixo risco.</p>
+                    <p>Assim que recupera a posse, a transição é imediata, acionando a velocidade dos pontas e do centroavante em profundidade.</p>
+                `
+            },
+            'selecao': {
+                tag: 'Seleção Brasileira',
+                date: '28 Out, 2026',
+                title: 'O Meio-Campo da Seleção: Encontrando o Equilíbrio entre Criatividade e Sustentação Defensiva',
+                body: `
+                    <p>A discussão sobre quem deve compor o duplo pivô da Seleção Brasileira passa fundamentalmente pela ocupação de espaços nas transições defensivas. Sem um volante fixo com altíssima taxa de duelos terrestres ganhos, a equipe sofre com contra-ataques pelo centro.</p>
+                `
+            },
+            'gegenpressing': {
+                tag: 'Análise Tática',
+                date: '24 Out, 2026',
+                title: 'Gegenpressing vs. Posse Organizada: Anatomia de um Confronto de Ideologias',
+                body: `
+                    <p>O embate entre o jogo posicional de circulação paciente e o futebol de alta intensidade e transição rápida moldou a última década de finais continentais na Europa.</p>
+                `
+            },
+            'radar': {
+                tag: 'Scout & Dados',
+                date: '20 Out, 2026',
+                title: 'Radar de Desempenho: Como Filtrar Atletas Sub-23 no Mercado Sul-Americano',
+                body: `
+                    <p>A prospecção de talentos baseada em dados utiliza percentis de comparação por posição. Descubra quais métricas de duelos e passes progressivos diferenciam promessas reais de atletas comuns.</p>
+                `
+            }
+        };
+
+        function openModal(articleKey) {
+            const article = articlesData[articleKey] || articlesData['destaque'];
+            document.getElementById('modalCategoryTag').innerText = article.tag;
+            document.getElementById('modalDate').innerText = article.date;
+            document.getElementById('modalTitle').innerText = article.title;
+            document.getElementById('modalTextBody').innerHTML = article.body;
+            
+            const modal = document.getElementById('articleModal');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('articleModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Fechar modal clicando fora
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('articleModal');
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Simulação de Newsletter
+        function handleNewsletter(e) {
+            e.preventDefault();
+            const msg = document.getElementById('newsletterMsg');
+            msg.innerText = "✓ Sucesso! Você agora faz parte do grupo de analistas da Prancheta do Zappa.";
+            msg.classList.remove('hidden');
+            e.target.reset();
+            setTimeout(() => {
+                msg.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Barra de busca simples em tempo real
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const cards = document.querySelectorAll('.post-card');
+                cards.forEach(card => {
+                    const text = card.innerText.toLowerCase();
+                    if (text.includes(term)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+    </script>
+
+</body>
+</html>
